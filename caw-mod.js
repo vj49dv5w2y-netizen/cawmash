@@ -38,7 +38,7 @@
                          5: "ULTRA KILL", 6: "M-M-M-MONSTER KILL" };
   const CAW_RE = /\bc+a+w+\b/i;
 
-  // Where the sounds live (your cawmash repo, via jsDelivr). Full per-sound URLs win
+  // Where the sounds live (via jsDelivr). Full per-sound URLs win
   // over baseUrl, so these defaults work with the repo's own filenames.
   const CDN = "https://cdn.jsdelivr.net/gh/vj49dv5w2y-netizen/cawmash@main/";
   const settings = {
@@ -50,6 +50,7 @@
     ultraUrl: CDN + "ultrakill.mp3",
     monsterUrl: CDN + "monsterkill.mp3",
     volume: 80,
+    streakLoudness: 60,     // UT announcer loudness as a PERCENT of master volume
     hawkCooldownSecs: 2,
     cawEnabled: true,
     streakEnabled: true,
@@ -63,7 +64,7 @@
     return null;
   }
 
-  function play(overrideKey, filename, label) {
+  function play(overrideKey, filename, label, gain = 1.0) {
     const url = soundUrl(overrideKey, filename);
     if (!url) {
       console.warn(`[caw mod] ${label}: no sound configured - set "Sound base URL" ` +
@@ -71,7 +72,7 @@
       return;
     }
     const a = new Audio(url);                  // fresh element per play so sounds can overlap
-    a.volume = Math.min(1, Math.max(0, settings.volume / 100));
+    a.volume = Math.min(1, Math.max(0, (settings.volume / 100) * gain));
     a.play().catch((e) => console.warn(`[caw mod] could not play ${label}:`, e.message));
   }
 
@@ -87,7 +88,7 @@
 
   // ------------------------------------------------------------------ kill streaks
   // The engine calls Players.kill(msg) on every PLAYER_KILL packet, msg =
-  // {id: victim, killer, posX, posY} - wrap it once (same technique starmash-things
+  // {id: victim, killer, posX, posY} - wrap it once (technique starmash-things
   // uses) and read the ids before handing through.
   let streak = 0;
   let lastKillAt = -1e12;
@@ -107,7 +108,8 @@
     if (streak >= 2) {
       const tier = Math.min(streak, 6);
       console.log(`[caw mod] ${STREAK_NAMES[tier]} (${streak} kills)`);
-      play(STREAK_FILES[tier].replace(".mp3", "Url"), STREAK_FILES[tier], STREAK_NAMES[tier]);
+      play(STREAK_FILES[tier].replace(".mp3", "Url"), STREAK_FILES[tier], STREAK_NAMES[tier],
+           settings.streakLoudness / 100);
     }
   }
 
@@ -137,6 +139,8 @@
     caw.addString("hawkUrl", "Hawk sound URL override (optional)");
     const streaks = sp.addSection("Kill streaks");
     streaks.addBoolean("streakEnabled", "UT announcer on kill streaks");
+    streaks.addSliderField("streakLoudness", "Announcer loudness (% of master volume)",
+                           { min: 0, max: 100, step: 5 });
     streaks.addString("doubleUrl", "Double Kill URL override (optional)");
     streaks.addString("multiUrl", "Multi Kill URL override (optional)");
     streaks.addString("megaUrl", "Mega Kill URL override (optional)");
