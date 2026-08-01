@@ -38,7 +38,7 @@
                          5: "ULTRA KILL", 6: "M-M-M-MONSTER KILL" };
   const CAW_RE = /\bc+a+w+\b/i;
 
-  // Where the sounds live (via jsDelivr). Full per-sound URLs win
+  // Where the sounds live (your cawmash repo, via jsDelivr). Full per-sound URLs win
   // over baseUrl, so these defaults work with the repo's own filenames.
   const CDN = "https://cdn.jsdelivr.net/gh/vj49dv5w2y-netizen/cawmash@main/";
   const settings = {
@@ -88,7 +88,7 @@
 
   // ------------------------------------------------------------------ kill streaks
   // The engine calls Players.kill(msg) on every PLAYER_KILL packet, msg =
-  // {id: victim, killer, posX, posY} - wrap it once (technique starmash-things
+  // {id: victim, killer, posX, posY} - wrap it once (same technique starmash-things
   // uses) and read the ids before handing through.
   let streak = 0;
   let lastKillAt = -1e12;
