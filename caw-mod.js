@@ -11,18 +11,17 @@
  *        6th within 4s of the Ultra               -> M-M-M-Monster Kill
  *    (7+ keeps replaying Monster Kill. Dying resets the chain.)
  *
- * SOUND FILES (bring your own - the announcer lines are Epic's audio, so this mod
- * does not hotlink them): host six files somewhere the browser can reach and set
- * "Sound base URL" in Mod Settings. Expected filenames under that base:
- *     hawk.mp3  double.mp3  multi.mp3  mega.mp3  ultra.mp3  monster.mp3
- * Any individual file can be overridden with a full URL in settings. Two easy hosts:
- *   - local:  cd <your sounds dir> && python3 -m http.server 8666
- *             then base URL = http://127.0.0.1:8666/
- *   - GitHub: push the files to a repo and use
- *             https://cdn.jsdelivr.net/gh/<user>/<repo>@latest/
+ * SOUNDS: defaults point at the github.com/vj49dv5w2y-netizen/cawmash repo via
+ * jsDelivr (caw.mp3 + the five UT announcer files at the repo root). Any of them can
+ * still be overridden per-sound in Mod Settings, or repointed wholesale by editing
+ * CDN below / setting "Sound base URL" (expects hawk/double/multi/mega/ultra/
+ * monster.mp3 under that base).
  *
- * INSTALL: serve or host this file the same way and add its URL in the StarMash
- * extensions panel (Mod Settings -> Add extension).
+ * INSTALL: add this file's URL in the StarMash extensions panel:
+ *     https://cdn.jsdelivr.net/gh/vj49dv5w2y-netizen/cawmash@main/caw-mod.js
+ * (@main because the repo has no release tags; jsDelivr caches branch files ~12h -
+ * after pushing changes, refresh the cache at
+ *     https://purge.jsdelivr.net/gh/vj49dv5w2y-netizen/cawmash@main/caw-mod.js )
  */
 !function () {
   "use strict";
@@ -39,14 +38,17 @@
                          5: "ULTRA KILL", 6: "M-M-M-MONSTER KILL" };
   const CAW_RE = /\bc+a+w+\b/i;
 
+  // Where the sounds live (your cawmash repo, via jsDelivr). Full per-sound URLs win
+  // over baseUrl, so these defaults work with the repo's own filenames.
+  const CDN = "https://cdn.jsdelivr.net/gh/vj49dv5w2y-netizen/cawmash@main/";
   const settings = {
     baseUrl: "",
-    hawkUrl: "",
-    doubleUrl: "",
-    multiUrl: "",
-    megaUrl: "",
-    ultraUrl: "",
-    monsterUrl: "",
+    hawkUrl: CDN + "caw.mp3",
+    doubleUrl: CDN + "doublekill.mp3",
+    multiUrl: CDN + "multikill.mp3",
+    megaUrl: CDN + "megakill.mp3",
+    ultraUrl: CDN + "ultrakill.mp3",
+    monsterUrl: CDN + "monsterkill.mp3",
     volume: 80,
     hawkCooldownSecs: 2,
     cawEnabled: true,
@@ -74,7 +76,7 @@
   }
 
   // ------------------------------------------------------------------ CAW in chat
-  let lastHawk = 0;
+  let lastHawk = -Infinity;   // not 0: the cooldown must not swallow a CAW right after page load
   SWAM.on("chatLineAdded", (player, text, type) => {
     if (!settings.cawEnabled || typeof text !== "string" || !CAW_RE.test(text)) return;
     const now = performance.now();
